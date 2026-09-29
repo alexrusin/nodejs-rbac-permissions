@@ -9,10 +9,10 @@ const prisma = new PrismaClient({ adapter });
 const PASSWORD = 'correct-horse-battery-staple';
 
 const users = [
-  { id: '11111111-1111-4111-8111-111111111111', email: 'alice@example.com', role: 'ADMIN' },
-  { id: '22222222-2222-4222-8222-222222222222', email: 'bob@example.com', role: 'EDITOR' },
-  { id: '33333333-3333-4333-8333-333333333333', email: 'carol@example.com', role: 'VIEWER' },
-] as const;
+  { id: '11111111-1111-4111-8111-111111111111', email: 'alice@example.com' },
+  { id: '22222222-2222-4222-8222-222222222222', email: 'bob@example.com' },
+  { id: '33333333-3333-4333-8333-333333333333', email: 'carol@example.com' },
+];
 
 const projects = [
   {
@@ -26,6 +26,29 @@ const projects = [
     createdById: '22222222-2222-4222-8222-222222222222',
   },
 ];
+
+const members = [
+  {
+    projectId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    userId: '11111111-1111-4111-8111-111111111111',
+    role: 'OWNER',
+  },
+  {
+    projectId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+    userId: '22222222-2222-4222-8222-222222222222',
+    role: 'EDITOR',
+  },
+  {
+    projectId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    userId: '33333333-3333-4333-8333-333333333333',
+    role: 'VIEWER',
+  },
+  {
+    projectId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+    userId: '33333333-3333-4333-8333-333333333333',
+    role: 'VIEWER',
+  },
+] as const;
 
 const tasks = [
   {
@@ -61,7 +84,7 @@ async function main() {
   for (const user of users) {
     await prisma.user.upsert({
       where: { id: user.id },
-      update: { email: user.email, role: user.role, passwordHash },
+      update: { email: user.email, passwordHash },
       create: { ...user, passwordHash },
     });
   }
@@ -74,15 +97,25 @@ async function main() {
     });
   }
 
+  for (const member of members) {
+    await prisma.projectMember.upsert({
+      where: { projectId_userId: { projectId: member.projectId, userId: member.userId } },
+      update: { role: member.role },
+      create: member,
+    });
+  }
+
   for (const task of tasks) {
     await prisma.task.upsert({
       where: { id: task.id },
-      update: { projectId: task.projectId, title: task.title, done: false },
+      update: { projectId: task.projectId, title: task.title, done: false, archivedAt: null },
       create: task,
     });
   }
 
-  console.log(`Seeded ${users.length} users, ${projects.length} projects, ${tasks.length} tasks`);
+  console.log(
+    `Seeded ${users.length} users, ${projects.length} projects, ${members.length} members, ${tasks.length} tasks`,
+  );
 }
 
 try {

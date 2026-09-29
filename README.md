@@ -1,6 +1,6 @@
 # RBAC demo API
 
-A projects-and-tasks API built with Express 5, Prisma 7, and PostgreSQL 18. Users log in with email and password and get a JWT that lasts 15 minutes. Each user has one role: ADMIN, EDITOR, or VIEWER.
+A projects-and-tasks API built with Express 5, Prisma 7, and PostgreSQL 18. Users log in with email and password and get a JWT that lasts 15 minutes. A user's role belongs to a project membership, not to the user: OWNER, EDITOR, or VIEWER.
 
 ## Setup
 
@@ -32,26 +32,28 @@ The API listens on http://localhost:3000.
 
 All three users have the password `correct-horse-battery-staple`.
 
-| Email             | Role   |
-| ----------------- | ------ |
-| alice@example.com | ADMIN  |
-| bob@example.com   | EDITOR |
-| carol@example.com | VIEWER |
+| Email             | Website Redesign | Mobile App |
+| ----------------- | ---------------- | ---------- |
+| alice@example.com | OWNER            |            |
+| bob@example.com   |                  | EDITOR     |
+| carol@example.com | VIEWER           | VIEWER     |
 
-Alice owns "Website Redesign". Bob owns "Mobile App". Each project has two tasks.
+Each project has two tasks.
 
 ## Routes
 
-| Method | Path                                 | Roles                 |
-| ------ | ------------------------------------ | --------------------- |
-| GET    | `/health`                            | public                |
-| POST   | `/auth/login`                        | public                |
-| GET    | `/projects/:projectId`               | ADMIN, EDITOR, VIEWER |
-| GET    | `/projects/:projectId/tasks`         | ADMIN, EDITOR, VIEWER |
-| POST   | `/projects/:projectId/tasks`         | ADMIN, EDITOR         |
-| PATCH  | `/projects/:projectId/tasks/:taskId` | ADMIN, EDITOR         |
-| DELETE | `/projects/:projectId/tasks/:taskId` | ADMIN, EDITOR         |
-| PATCH  | `/users/:userId/role`                | ADMIN                 |
+Each project route checks the caller's `ProjectMember` row for that project. `src/auth/permissions.ts` maps each role to its permissions. A user who is not a member gets 404. A member without the permission gets 403.
+
+| Method | Path                                         | Permission     |
+| ------ | -------------------------------------------- | -------------- |
+| GET    | `/health`                                    | public         |
+| POST   | `/auth/login`                                | public         |
+| GET    | `/projects/:projectId`                       | `project:read` |
+| GET    | `/projects/:projectId/tasks`                 | `task:read`    |
+| POST   | `/projects/:projectId/tasks`                 | `task:create`  |
+| PATCH  | `/projects/:projectId/tasks/:taskId`         | `task:update`  |
+| DELETE | `/projects/:projectId/tasks/:taskId`         | `task:delete`  |
+| POST   | `/projects/:projectId/tasks/:taskId/archive` | `task:archive` |
 
 `requests.http` has a request for each of these. Open it in VS Code with the REST Client extension and run the three logins first.
 

@@ -20,8 +20,10 @@ Express 5 + Prisma 7 + PostgreSQL 18 API. Node 24, ESM, TypeScript strict.
 - `src/server.ts` starts the server
 - `src/env.ts` parses environment variables with Zod
 - `src/db.ts` exports the Prisma client
-- `src/middleware/` has `authenticate.ts` and `requireRole.ts`
+- `src/middleware/` has `authenticate.ts`
+- `src/auth/` has the role-to-permission map, `authorize()`, `requirePermission()`, and `route()`
 - `src/routes/` has one router per file, and each file names its router `router`
+- Register every route with `route()` from `src/auth/route.ts`. It takes a required `permission`, which is a permission name or `PUBLIC`, and it adds `authenticate` and `requirePermission` itself. ESLint blocks `router.get`, `app.post`, and the other method calls in every other file.
 - `src/generated/` is Prisma output. Don't edit it.
 - `prisma/` has the schema, migrations, and `seed.ts`
 - `prisma.config.ts` is the Prisma CLI config. It loads `.env` through dotenv.

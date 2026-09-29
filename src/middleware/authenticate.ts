@@ -2,14 +2,12 @@ import type { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { env } from '../env.js';
-import { Role } from '../generated/prisma/enums.js';
 
 export const JWT_ISSUER = 'rbac-demo';
 export const JWT_AUDIENCE = 'rbac-demo-api';
 
 const tokenPayloadSchema = z.object({
   sub: z.uuid(),
-  role: z.enum(Role),
 });
 
 export function authenticate(req: Request, res: Response, next: NextFunction) {
@@ -31,7 +29,7 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
     });
     const payload = tokenPayloadSchema.parse(decoded);
 
-    req.user = { id: payload.sub, role: payload.role };
+    req.user = { id: payload.sub };
   } catch {
     res.status(401).json({ error: 'Unauthorized' });
     return;

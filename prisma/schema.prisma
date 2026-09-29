@@ -8,35 +8,48 @@ datasource db {
 }
 
 enum Role {
-  ADMIN
+  OWNER
   EDITOR
   VIEWER
 }
 
 model User {
-  id           String    @id @default(uuid()) @db.Uuid
-  email        String    @unique
+  id           String          @id @default(uuid()) @db.Uuid
+  email        String          @unique
   passwordHash String
-  role         Role      @default(VIEWER)
-  createdAt    DateTime  @default(now())
+  createdAt    DateTime        @default(now())
   projects     Project[]
+  memberships  ProjectMember[]
 }
 
 model Project {
-  id          String   @id @default(uuid()) @db.Uuid
+  id          String          @id @default(uuid()) @db.Uuid
   name        String
-  createdById String   @db.Uuid
-  createdBy   User     @relation(fields: [createdById], references: [id])
-  createdAt   DateTime @default(now())
+  createdById String          @db.Uuid
+  createdBy   User            @relation(fields: [createdById], references: [id])
+  createdAt   DateTime        @default(now())
   tasks       Task[]
+  members     ProjectMember[]
+}
+
+model ProjectMember {
+  projectId String  @db.Uuid
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String  @db.Uuid
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role
+
+  @@id([projectId, userId])
+  @@index([userId])
 }
 
 model Task {
-  id        String   @id @default(uuid()) @db.Uuid
-  projectId String   @db.Uuid
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  title     String
-  done      Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String    @id @default(uuid()) @db.Uuid
+  projectId  String    @db.Uuid
+  project    Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title      String
+  done       Boolean   @default(false)
+  archivedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 }

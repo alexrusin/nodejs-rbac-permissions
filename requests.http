@@ -22,7 +22,7 @@ GET {{baseUrl}}/health
 
 ### Log in as Alice
 # @name loginAlice
-POST {{baseUrl}}/auth/login
+POST {{baseUrl}}/auth/login 
 Content-Type: application/json
 
 {
@@ -96,3 +96,7 @@ Content-Type: application/json
 {
   "done": true
 }
+
+### Alice archives task A2
+POST {{baseUrl}}/projects/{{projectA}}/tasks/{{taskA2}}/archive
+Authorization: Bearer {{aliceToken}}
